@@ -1,2 +1,53 @@
 # minGS
-Minimalistic PyTorch Gaussian splatting module
+This is a minimalistic refactoring of the original 3D Gaussian splatting codebase that follows PyTorch conventions and allow for easy customization and extension, based on the [original 3DGS official repository](https://github.com/graphdeco-inria/gaussian-splatting).
+
+It is meant for researchers who want to experiment with 3D Gaussian splatting and need a clean and easy-to-understand codebase to start from.
+
+# Examples
+
+## Original training pipeline
+`example.py` shows how to train a 3DGS model using the original training pipeline. 
+
+## Minimal Custom Training Example
+To customize the pipeline `GaussianModel` can be used just like any other PyTorch model and the training loop can be written from scratch. Below is a minimal example:
+```python
+import torch
+from gs.core.GaussianModel import GaussianModel
+from gs.helpers.loss import l1_loss
+from gs.io.colmap import load
+
+cameras, pointcloud = load('your_dataset/')
+model = GaussianModel.from_point_cloud(pointcloud).cuda()
+optimizer = torch.optim.Adam(model.parameters(), lr=0.001, eps=1e-15)
+
+for i in range(5000):
+
+    camera = cameras[i % len(cameras)]
+    rendered = model.forward(camera)
+
+    loss = l1_loss(rendered, camera.image)
+    loss.backward()
+    model.backprop_stats()
+
+    optimizer.step()
+    optimizer.zero_grad(set_to_none=True) 
+
+    torch.cuda.empty_cache()
+```
+
+## Structure
+The codebase is structured as follows:
+- `gs/`: The Gaussian splatting module.
+    - `core/`: Core data structures and functions for rendering 3DGS models
+        - `BaseCamera.py`: Base class that represents a camera used for training 3DGS models
+        - `BasePointCloud.py`: Base class for point clouds used for initializing 3DGS models
+        - `GaussianModel.py`: 3DGS model refactored as a nn.Module. Use `forward` with a camera to render the model
+    - `io/`: Functions for importing and exporting image and point cloud data
+        - `colmap/`: Functions for importing COLMAP reconstructions into `BaseCamera` and `BasePointCloud` compliant objects
+    - `trainers/`: Training scripts for 3DGS models
+        - `basic/`: Re-implementations of the original training script
+    - `helpers/`: General functions for rendering and training 3DGS models
+
+## Todo
+- [ ] .ply import/export
+- [ ] Live visualization using nerfstudio's `viser` module
