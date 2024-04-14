@@ -27,7 +27,6 @@ for i in range(5000):
 
     loss = l1_loss(rendered, camera.image)
     loss.backward()
-    model.backprop_stats()
 
     optimizer.step()
     optimizer.zero_grad(set_to_none=True) 
