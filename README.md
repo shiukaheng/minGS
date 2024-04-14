@@ -3,6 +3,9 @@ This is a minimalistic refactoring of the original 3D Gaussian splatting codebas
 
 It is meant for researchers who want to experiment with 3D Gaussian splatting and need a clean and easy-to-understand codebase to start from.
 
+# Installation
+Assuming you have CUDA SDK installed, you can view or directly run `install.sh` to install the required dependencies and compile the CUDA kernels. 
+
 # Examples
 
 ## Original training pipeline
@@ -34,7 +37,7 @@ for i in range(5000):
     torch.cuda.empty_cache()
 ```
 
-## Structure
+# Structure
 The codebase is structured as follows:
 - `gs/`: The Gaussian splatting module.
     - `core/`: Core data structures and functions for rendering 3DGS models
@@ -47,6 +50,6 @@ The codebase is structured as follows:
         - `basic/`: Re-implementations of the original training script
     - `helpers/`: General functions for rendering and training 3DGS models
 
-## Todo
+# Todo
 - [ ] .ply import/export
 - [ ] Live visualization using nerfstudio's `viser` module
