@@ -8,7 +8,7 @@ It is meant for researchers who want to experiment with 3D Gaussian splatting an
 - 📄 Separation of model and training logic
     - A nn.module `GaussianModel` only for storing parameters and forward pass (rendering)
     - Reference training logic and hyperparameters is defined in `train()` in `gs.trainers.basic`
-- 📸 [Viser](https://github.com/nerfstudio-project/viser) web-based frontend for viewing model during and after training, no more compiling SIBR viewers and remote working friendly :)
+- 📸 [Viser](https://github.com/nerfstudio-project/viser) web-based frontend for viewing model during and after training
 
 # System requriements
 Just like the original codebase, minGS requires a CUDA compatible GPU to run.
