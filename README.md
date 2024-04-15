@@ -6,7 +6,7 @@ It is meant for researchers who want to experiment with 3D Gaussian splatting an
 # Features
 - 🧑🏻‍💻 Typed and commented
 - 📄 Separation of model and training logic
-    - A nn.module `GaussianModel` only for storing parameters and forward pass (rendering)
+    - A `nn.module` `GaussianModel` only for storing parameters and forward pass (rendering)
     - Reference training logic and hyperparameters is defined in `train()` in `gs.trainers.basic`
 - 📸 [Viser](https://github.com/nerfstudio-project/viser) web-based frontend for viewing model during and after training
 
