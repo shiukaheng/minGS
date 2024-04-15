@@ -328,14 +328,16 @@ class GaussianModel(nn.Module):
         # Make sure the directory to save the file exists
         mkdir_p(os.path.dirname(filename))
 
+        # print(f"Shapes: positions={self.positions.shape}, sh_coefficients_0={self.sh_coefficients_0.shape}, sh_coefficients_rest={self.sh_coefficients_rest.shape}, scales={self.scales.shape}, rotations={self.rotations.shape}, opacities={self.opacities.shape}")
+
         # Detach parameters and move to CPU to prepare for saving
         positions = self.positions.detach().cpu().numpy()
         normals = np.zeros_like(positions)
         rotations = self.rotations.detach().cpu().numpy()
         scales = self.scales.detach().cpu().numpy()
         opacities = self.opacities.detach().cpu().numpy()
-        sh_coefficients = self.sh_coefficients.detach().cpu().numpy()
-        dtype_full = [(attribute, 'f4') for attribute in self.construct_list_of_attributes()]
+        sh_coefficients_0 = self.sh_coefficients_0.detach().cpu().squeeze(1).numpy()
+        sh_coefficients_rest = self.sh_coefficients_rest.detach().cpu().view(self.sh_coefficients_rest.shape[0], -1).numpy()
 
         # Prepare PLY attributes (order matters!)
         basic_attribs = ['x', 'y', 'z', 'nx', 'ny', 'nz'] # Position and normal attributes
@@ -349,7 +351,7 @@ class GaussianModel(nn.Module):
 
         # Save the attributes to a PLY file
         elements = np.empty(len(self), dtype=dtype)
-        attributes = np.concatenate((positions, normals, sh_coefficients[0], sh_coefficients[1], sh_coefficients[2], opacities, scales, rotations), axis=1)
+        attributes = np.concatenate((positions, normals, sh_coefficients_0, sh_coefficients_rest, opacities, scales, rotations), axis=1)
         elements[:] = list(map(tuple, attributes))
         element = PlyElement.describe(elements, 'vertex')
         PlyData([element]).write(filename)
@@ -380,7 +382,8 @@ class GaussianModel(nn.Module):
                                 key=lambda x: int(x.split('_')[-1]))
         for name in extra_sh_names:
             sh_coefficients_rest.append(np.asarray(plydata['vertex'][name]))
-        sh_coefficients_rest = np.stack(sh_coefficients_rest, axis=1).reshape(-1, (sh_channels - 1), (sh_channels + 1) ** 2 - sh_channels)
+        num_gaussians = len(opacities)
+        sh_coefficients_rest = np.stack(sh_coefficients_rest, axis=1).reshape(num_gaussians, -1, sh_channels)
 
         # Extract scales and rotations
         scale_names = sorted([p.name for p in plydata['vertex'].properties if p.name.startswith("scale_")], key=lambda x: int(x.split('_')[-1]))
@@ -388,6 +391,8 @@ class GaussianModel(nn.Module):
 
         rot_names = sorted([p.name for p in plydata['vertex'].properties if p.name.startswith("rot")], key=lambda x: int(x.split('_')[-1]))
         rotations = np.stack([np.asarray(plydata['vertex'][name]) for name in rot_names], axis=1)
+
+        # print(f"Shapes: positions={positions.shape}, sh_coefficients_0={sh_coefficients_0.shape}, sh_coefficients_rest={sh_coefficients_rest.shape}, scales={scales.shape}, rotations={rotations.shape}, opacities={opacities.shape}")
 
         # Create a new GaussianModel instance with the loaded parameters
         gaussian_model = GaussianModel(
