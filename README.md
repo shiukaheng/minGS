@@ -3,15 +3,19 @@ This is a minimalistic refactor of the original 3D Gaussian splatting codebase t
 
 It is meant for researchers who want to experiment with 3D Gaussian splatting and need a clean and easy to understand codebase to start from.
 
+# Features
+- 🧑🏻‍💻 Typed and commented
+- 📄 Separation of model and training logic
+    - A nn.module `GaussianModel` only for storing parameters and forward pass (rendering)
+    - Reference training logic and hyperparameters is defined in `train()` in `gs.trainers.basic`
+- 📸 [Viser](https://github.com/nerfstudio-project/viser) web-based frontend for viewing model during and after training, no more compiling SIBR viewers and remote working friendly :)
+
 # System requriements
 Just like the original codebase, minGS requires a CUDA compatible GPU to run.
 
 Assuming you have CUDA toolkit installed, you can view or directly run `install.sh` to install the required dependencies and compile the CUDA kernels.
 
 # Examples
-
-## Original training pipeline
-`example.py` shows how to train a 3DGS model using the original training pipeline. 
 
 ## Minimal Custom Training Example
 To customize the pipeline `GaussianModel` can be used just like any other PyTorch model and the training loop can be written from scratch. Below is a minimal example:
@@ -50,8 +54,7 @@ The codebase is structured as follows:
         - `colmap/`: Functions for importing COLMAP reconstructions into `BaseCamera` and `BasePointCloud` compliant objects
     - `trainers/`: Training scripts for 3DGS models
         - `basic/`: Re-implementations of the original training script
+    - `visualization/`: Classes for visualizing 3DGS models
+        - `Viewer.py`: Class for starting a web-based 3DGS viewer for a `GaussianModel`
+        - `TrainingViewer.py` Extension of `Viewer` to be integrated into a training loop for live viewing during training 
     - `helpers/`: General functions for rendering and training 3DGS models
-
-# Todo
-- [x] .ply import/export
-- [ ] Live visualization using nerfstudio's `viser` module
