@@ -7,6 +7,7 @@ from gs.core.GaussianModel import GaussianModel
 from gs.helpers.loss import mix_l1_ssim_loss
 from gs.helpers.scene import estimate_scene_scale
 from gs.trainers.basic.helpers import densify, get_expon_lr_func, prune, prune_opacity_only, reset_opacities
+from gs.visualization.TrainingViewer import TrainingViewer
 
 def train(
         model: GaussianModel, 
@@ -37,7 +38,11 @@ def train(
     """
     This is the most basic trainer for Gaussian splatting. It mirrors the original training logic.
     """
+
     model.to(device)
+
+    # Prepare model visualizer
+    viewer = TrainingViewer(model)
 
     # We estimate the scene size, such that a larger scene will have a larger learning rate. It is a heuristic defined in the original code.
     if scene_scale is None:
@@ -118,5 +123,9 @@ def train(
             optimizer.step()
             optimizer.zero_grad(set_to_none=True) # We zero the gradients so they do not accumulate to the next iteration.
 
+            viewer.render_once()
+
             pbar.set_description(f"Loss: {loss.item()}") # We update the progress bar with the current loss.
             torch.cuda.empty_cache() # We empty the cache to avoid memory leaks.
+
+    viewer.finish_training_keep_alive()
