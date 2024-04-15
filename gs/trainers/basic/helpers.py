@@ -3,7 +3,7 @@ import torch
 from gs.core.GaussianModel import GaussianModel
 from torch import nn
 from gs.helpers.math import inverse_sigmoid
-from gs.helpers.transforms import build_rotation
+from gs.helpers.transforms import quat_to_rot
 
 """
 This module contains helper functions for densifying and pruning Gaussian models. It is not attached as a class method since it required direct access to the optimizer.
@@ -144,7 +144,7 @@ def split_gaussians(
     sds = model.scaling_activation(scales).repeat(n_samples, 1)
     means = torch.zeros((sds.size(0), 3), device=device)
     samples = torch.normal(means, sds)
-    p_rotations = build_rotation(rotations).repeat(n_samples, 1, 1)
+    p_rotations = quat_to_rot(rotations).repeat(n_samples, 1, 1)
 
     # We create new Gaussians with the sampled positions. Scale is divided by 0.8 * n_samples of the original scale.
     new_positions = torch.bmm(p_rotations, samples.unsqueeze(-1)).squeeze(-1) + positions.repeat(n_samples, 1)

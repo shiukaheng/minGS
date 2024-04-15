@@ -18,3 +18,9 @@ def torch_to_pil(image):
         return Image.fromarray((image.permute(1, 2, 0).numpy() * 255).astype(np.uint8))
     else: # If the image is grayscale
         return Image.fromarray((image.squeeze(dim=0).permute(1, 2, 0).numpy() * 255).astype(np.uint8))
+    
+def torch_to_numpy(image: torch.Tensor) -> np.ndarray:
+    if len(image.shape) == 3: # If the image is colored
+        return image.permute(1, 2, 0).numpy()
+    else: # If the image is grayscale
+        return image.squeeze(dim=0).permute(1, 2, 0).numpy()

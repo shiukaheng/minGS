@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 This module contains helper functions for 3D transformations.
 """
 
-def build_rotation(r: torch.Tensor) -> torch.Tensor:
+def quat_to_rot(r: torch.Tensor) -> torch.Tensor:
     """
     Builds a rotation matrix from a quaternion.
 
@@ -41,6 +41,44 @@ def build_rotation(r: torch.Tensor) -> torch.Tensor:
     R[:, 2, 2] = 1 - 2 * (x*x + y*y)
     return R
 
+def quat_to_rot_numpy(quat: np.ndarray) -> np.ndarray:
+    """
+    Builds a rotation matrix from a quaternion.
+
+    Args:
+        quat (np.ndarray): A numpy array of shape (4,) representing the quaternion (w, x, y, z).
+
+    Returns:
+        np.ndarray: A 3x3 numpy array representing the rotation matrix.
+    """
+    if quat.shape != (4,):
+        raise ValueError("Quaternion must be an array of shape (4,)")
+
+    # Normalize the quaternion
+    norm = np.sqrt(np.dot(quat, quat))
+    if norm == 0:
+        raise ValueError("The input quaternion is a zero vector and cannot be normalized.")
+    quat = quat / norm
+
+    w, x, y, z = quat
+
+    # Compute the rotation matrix components
+    rxx = 1 - 2 * (y*y + z*z)
+    rxy = 2 * (x*y - w*z)
+    rxz = 2 * (x*z + w*y)
+    ryx = 2 * (x*y + w*z)
+    ryy = 1 - 2 * (x*x + z*z)
+    ryz = 2 * (y*z - w*x)
+    rzx = 2 * (x*z - w*y)
+    rzy = 2 * (y*z + w*x)
+    rzz = 1 - 2 * (x*x + y*y)
+
+    return np.array([
+        [rxx, rxy, rxz],
+        [ryx, ryy, ryz],
+        [rzx, rzy, rzz]
+    ])
+
 def build_scaling_rotation(s: torch.Tensor, r: torch.Tensor) -> torch.Tensor:
     """
     Builds a scaling-rotation matrix.
@@ -53,7 +91,7 @@ def build_scaling_rotation(s: torch.Tensor, r: torch.Tensor) -> torch.Tensor:
         torch.Tensor: Scaling-rotation matrix of shape (N, 3, 3).
     """
     L = torch.zeros((s.shape[0], 3, 3), dtype=torch.float, device="cuda")
-    R = build_rotation(r)
+    R = quat_to_rot(r)
 
     L[:,0,0] = s[:,0]
     L[:,1,1] = s[:,1]

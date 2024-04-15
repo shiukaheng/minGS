@@ -1,3 +1,4 @@
+from typing import Union
 import numpy as np
 import torch
 import torch.nn as nn
@@ -14,7 +15,7 @@ class BaseCamera(nn.Module):
     world_view_transform: torch.Tensor
     full_proj_transform: torch.Tensor
     camera_center: torch.Tensor
-    image: torch.Tensor
+    image: Union[torch.Tensor, None]
 
     def __init__(
             self,
@@ -24,7 +25,7 @@ class BaseCamera(nn.Module):
             fov_y: float,
             R: np.ndarray,
             t: np.ndarray,
-            image: torch.Tensor,
+            image: torch.Tensor = None
     ):
         super().__init__()
         self.image_height = image_height
