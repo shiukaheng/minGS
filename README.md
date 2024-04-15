@@ -1,10 +1,12 @@
 # minGS
-This is a minimalistic refactoring of the original 3D Gaussian splatting codebase that follows PyTorch conventions and allow for easy customization and extension, based on the [original 3DGS official repository](https://github.com/graphdeco-inria/gaussian-splatting).
+This is a minimalistic refactor of the original 3D Gaussian splatting codebase that follows PyTorch conventions and allow for easy customization and extension, based on the [original 3DGS official repository](https://github.com/graphdeco-inria/gaussian-splatting).
 
-It is meant for researchers who want to experiment with 3D Gaussian splatting and need a clean and easy-to-understand codebase to start from.
+It is meant for researchers who want to experiment with 3D Gaussian splatting and need a clean and easy to understand codebase to start from.
 
-# Installation
-Assuming you have CUDA SDK installed, you can view or directly run `install.sh` to install the required dependencies and compile the CUDA kernels. 
+# System requriements
+Just like the original codebase, minGS requires a CUDA compatible GPU to run.
+
+Assuming you have CUDA toolkit installed, you can view or directly run `install.sh` to install the required dependencies and compile the CUDA kernels.
 
 # Examples
 
@@ -51,5 +53,5 @@ The codebase is structured as follows:
     - `helpers/`: General functions for rendering and training 3DGS models
 
 # Todo
-- [ ] .ply import/export
+- [x] .ply import/export
 - [ ] Live visualization using nerfstudio's `viser` module
