@@ -1,4 +1,5 @@
 import math
+import os
 import numpy as np
 import torch
 from torch import nn
@@ -7,8 +8,10 @@ from diff_gaussian_rasterization import GaussianRasterizationSettings, GaussianR
 from gs.core.BasePointCloud import BasePointCloud
 from gs.helpers.math import inverse_sigmoid
 from gs.helpers.spherical_harmonics import rgb_to_sh
+from gs.helpers.system import mkdir_p
 from gs.helpers.transforms import build_covariance_from_scaling_rotation
 from simple_knn._C import distCUDA2
+from plyfile import PlyData, PlyElement
 
 class GaussianModel(nn.Module):
     """
@@ -316,3 +319,87 @@ class GaussianModel(nn.Module):
         self.rotations = concatenated_rotations
         self.scales = concatenated_scales
         self.opacities = concatenated_opacities
+
+    def save_ply(self, filename: str):
+        """
+        Save the GaussianModel to a PLY file. Follows original implementation.
+        Useful for saving for visualization, but to save with the ability to resume training, better use PyTorch's save/load functionality.
+        """
+        # Make sure the directory to save the file exists
+        mkdir_p(os.path.dirname(filename))
+
+        # Detach parameters and move to CPU to prepare for saving
+        positions = self.positions.detach().cpu().numpy()
+        normals = np.zeros_like(positions)
+        rotations = self.rotations.detach().cpu().numpy()
+        scales = self.scales.detach().cpu().numpy()
+        opacities = self.opacities.detach().cpu().numpy()
+        sh_coefficients = self.sh_coefficients.detach().cpu().numpy()
+        dtype_full = [(attribute, 'f4') for attribute in self.construct_list_of_attributes()]
+
+        # Prepare PLY attributes (order matters!)
+        basic_attribs = ['x', 'y', 'z', 'nx', 'ny', 'nz'] # Position and normal attributes
+        sh_coefficients_0_attribs = [f'f_dc_{i}' for i in range(self.sh_coefficients_0.shape[1]*self.sh_coefficients_0.shape[2])] # degrees * 3 channels
+        sh_coefficients_rest_attribs = [f'f_rest_{i}' for i in range(self.sh_coefficients_rest.shape[1]*self.sh_coefficients_rest.shape[2])]
+        opacity_attribs = ['opacity']
+        scaling_attribs = [f'scale_{i}' for i in range(self.scales.shape[1])]
+        rotation_attribs = [f'rot_{i}' for i in range(self.rotations.shape[1])]
+        attribs = basic_attribs + sh_coefficients_0_attribs + sh_coefficients_rest_attribs + opacity_attribs + scaling_attribs + rotation_attribs
+        dtype = [(attribute, 'f4') for attribute in attribs] # Save all as float32 (4 bytes)
+
+        # Save the attributes to a PLY file
+        elements = np.empty(len(self), dtype=dtype)
+        attributes = np.concatenate((positions, normals, sh_coefficients[0], sh_coefficients[1], sh_coefficients[2], opacities, scales, rotations), axis=1)
+        elements[:] = list(map(tuple, attributes))
+        element = PlyElement.describe(elements, 'vertex')
+        PlyData([element]).write(filename)
+
+    @staticmethod
+    def from_ply(filename: str, sh_channels: int = 3):
+        plydata = PlyData.read(filename)
+
+        # Extract positions
+        positions = np.stack((
+            np.asarray(plydata['vertex']['x']),
+            np.asarray(plydata['vertex']['y']),
+            np.asarray(plydata['vertex']['z']),
+        ), axis=1)
+
+        # Extract opacities
+        opacities = np.asarray(plydata['vertex']['opacity']).reshape(-1, 1)
+
+        # Extract spherical harmonics coefficients for DC term
+        sh_coefficients_0 = []
+        for i in range(sh_channels):
+            sh_coefficients_0.append(np.asarray(plydata['vertex'][f'f_dc_{i}']))
+        sh_coefficients_0 = np.stack(sh_coefficients_0, axis=1).reshape(-1, 1, sh_channels)
+
+        # Extract spherical harmonics coefficients for the rest
+        sh_coefficients_rest = []
+        extra_sh_names = sorted([p.name for p in plydata['vertex'].properties if p.name.startswith('f_rest_')],
+                                key=lambda x: int(x.split('_')[-1]))
+        for name in extra_sh_names:
+            sh_coefficients_rest.append(np.asarray(plydata['vertex'][name]))
+        sh_coefficients_rest = np.stack(sh_coefficients_rest, axis=1).reshape(-1, (sh_channels - 1), (sh_channels + 1) ** 2 - sh_channels)
+
+        # Extract scales and rotations
+        scale_names = sorted([p.name for p in plydata['vertex'].properties if p.name.startswith("scale_")], key=lambda x: int(x.split('_')[-1]))
+        scales = np.stack([np.asarray(plydata['vertex'][name]) for name in scale_names], axis=1)
+
+        rot_names = sorted([p.name for p in plydata['vertex'].properties if p.name.startswith("rot")], key=lambda x: int(x.split('_')[-1]))
+        rotations = np.stack([np.asarray(plydata['vertex'][name]) for name in rot_names], axis=1)
+
+        # Create a new GaussianModel instance with the loaded parameters
+        gaussian_model = GaussianModel(
+            positions=torch.tensor(positions, dtype=torch.float32).cuda(),
+            sh_coefficients=torch.cat([
+                torch.tensor(sh_coefficients_0, dtype=torch.float32).cuda(),
+                torch.tensor(sh_coefficients_rest, dtype=torch.float32).cuda()
+            ], dim=1),
+            scales=torch.tensor(scales, dtype=torch.float32).cuda(),
+            rotations=torch.tensor(rotations, dtype=torch.float32).cuda(),
+            opacities=torch.tensor(opacities, dtype=torch.float32).cuda(),
+            sh_degree=sh_channels - 1
+        )
+
+        return gaussian_model

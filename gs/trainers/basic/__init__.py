@@ -82,8 +82,6 @@ def train(
             if randomize:
                 random.shuffle(train_cameras)
 
-        # We perform densification and culling.
-
         # We update the learning rate for the positions parameters according to the scheduler.
         for group in optimizer.param_groups:
             if "positions" in group["name"]:
@@ -101,7 +99,6 @@ def train(
         loss.backward()
         model.backprop_stats()
 
-        # Use OpenCV to display the image while it updates
         with torch.no_grad():
 
             # Densification and culling
