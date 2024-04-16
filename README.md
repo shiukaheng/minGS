@@ -56,7 +56,7 @@ The codebase is structured as follows:
     - `helpers/`: General functions for rendering and training 3DGS models
  
 # Installing dependencies
-Only tested for Linux, but may work for Windows too. Using `devcontainers` should make getting the dependencies easier.
+Only tested for Linux, but may work for Windows too. Using devcontainers should make getting the dependencies easier.
 ## Method 1: Local environment (Tested on Python 3.8)
 - [CUDA Toolkit](https://developer.nvidia.com/cuda-downloads)
 - `pip install numpy scipy torch torchvision torchaudio plyfile lpips pybind11 viser`
@@ -64,5 +64,7 @@ Only tested for Linux, but may work for Windows too. Using `devcontainers` shoul
     - `pip install -e ./submodules/diff-gaussian-rasterization/`
     - `pip install -e ./submodules/simple-knn/`
 ## Method 2: .devcontainer
+Devcontainers automatically recreate the development environment using Docker. It is mainly supported by VSCode but there is [also limited support for other editors](https://containers.dev/supporting).
+Install the relevant extensions, and when you open the repository you should be prompted to enter the container environment. First time running might take around 5 minutes to build the environment.
 - VSCode
 - [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
