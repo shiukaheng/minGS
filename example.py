@@ -3,7 +3,7 @@ from gs.io.colmap import load
 from gs.trainers.basic import train
 
 # Load COLMAP dataset
-cameras, pointcloud = load('your_dataset_path/')
+cameras, pointcloud = load('./datasets/apartment/') # Replace with your dataset path
 
 # Initialize Gaussian model
 model = GaussianModel.from_point_cloud(pointcloud).cuda()

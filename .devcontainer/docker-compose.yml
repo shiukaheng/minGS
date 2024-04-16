@@ -1,0 +1,19 @@
+version: '3.8'
+services:
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      # target: mings-dev
+    network_mode: host
+    privileged: true
+    volumes:
+      - ..:/root/workspace
+    entrypoint: tail -f /dev/null
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu] 

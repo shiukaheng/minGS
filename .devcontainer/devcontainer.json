@@ -1,0 +1,21 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/ubuntu
+{
+	"name": "minGS Development Container",
+	"dockerComposeFile": "docker-compose.yml",
+	"service": "dev",
+	"workspaceFolder": "/root/workspace",
+	"postCreateCommand": "/bin/bash -c '/root/workspace/.devcontainer/post_create.sh'",
+	"postStartCommand": "/bin/bash -c '/root/workspace/.devcontainer/post_start.sh'",
+	"customizations": {
+		"vscode": {
+			"settings": {
+				"remote.autoForwardPorts": false
+			},
+			"extensions": [
+				"ms-python.python"
+			]
+		}
+	}
+}
+

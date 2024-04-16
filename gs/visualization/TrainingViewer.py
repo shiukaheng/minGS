@@ -1,8 +1,11 @@
 
 from gs.core.GaussianModel import GaussianModel
 import threading
+from gs.helpers.image import torch_to_numpy
 from gs.visualization.Viewer import Viewer
 import threading
+
+from gs.visualization.helpers import build_camera
 
 class TrainingViewer(Viewer):
     def __init__(self, model: GaussianModel, width=1920, finish_frame_rate=15):
@@ -12,11 +15,17 @@ class TrainingViewer(Viewer):
 
     def render_once(self):
         """
-        Do preview renders during the training loop off-thread to avoid blocking.
+        Do a single render pass
         """
-        if self.training_preview_thread is None or not self.training_preview_thread.is_alive():
-            self.training_preview_thread = threading.Thread(target=self._render_once)
-            self.training_preview_thread.start()
+        clients = self.viser.get_clients()
+        renders = {}
+        for cid, client in clients.items():
+            camera = build_camera(client.camera, width=self.width).to(self.model.positions.device)
+            render = torch_to_numpy(self.model.forward(camera).detach().cpu())
+            renders[cid] = render
+            del camera
+        thread = threading.Thread(target=self._send_renders, args=(renders,))
+        thread.start()
 
     def finish_training_keep_alive(self):
         """

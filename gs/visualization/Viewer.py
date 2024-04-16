@@ -58,8 +58,18 @@ class Viewer:
         Do a single render pass
         """
         clients = self.viser.get_clients()
+        renders = {}
         for cid, client in clients.items():
             camera = build_camera(client.camera, width=self.width).to(self.model.positions.device)
             render = torch_to_numpy(self.model.forward(camera).detach().cpu())
-            client.set_background_image(render)
+            renders[cid] = render
             del camera
+        self._send_renders(renders)
+
+    def _send_renders(self, renders):
+        """
+        Send the renders to the clients
+        """
+        for cid, client in self.viser.get_clients().items():
+            if cid in renders:
+                client.set_background_image(renders[cid])
