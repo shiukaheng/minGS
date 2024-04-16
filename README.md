@@ -5,13 +5,23 @@ It is meant for researchers who want to experiment with 3D Gaussian splatting an
 
 # Features
 - 🧑🏻‍💻 Typed and commented
+- 📦 .devcontainer Docker provided
 - 📄 Separation of model and training logic
     - A `nn.module` `GaussianModel` only for storing parameters and forward pass (rendering)
     - Reference training logic and hyperparameters is defined in `train()` in `gs.trainers.basic`
 - 📸 [Viser](https://github.com/nerfstudio-project/viser) web-based frontend for viewing model during and after training
 
-# System requriements
-Just like the original codebase, minGS requires a CUDA compatible GPU to run.
+# Installing dependencies
+Only tested for Linux, but may work for Windows too. Using `devcontainers` should make getting the dependencies easier.
+## Method 1: Local environment (Tested on Python 3.8)
+- [CUDA Toolkit](https://developer.nvidia.com/cuda-downloads)
+- `pip install numpy scipy torch torchvision torchaudio plyfile lpips pybind11 viser`
+- Installing PyBind11 submodules
+    - `pip install -e ./submodules/diff-gaussian-rasterization/`
+    - `pip install -e ./submodules/simple-knn/`
+## Method 2: .devcontainer
+- VSCode
+- [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
 
 Assuming you have CUDA toolkit installed, you can view or directly run `install.sh` to install the required dependencies and compile the CUDA kernels.
 
