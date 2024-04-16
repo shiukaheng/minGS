@@ -5,15 +5,11 @@ It is meant for researchers who want to experiment with 3D Gaussian splatting an
 
 # Features
 - 🧑🏻‍💻 Typed and commented
+- 📦 .devcontainer Docker provided
 - 📄 Separation of model and training logic
     - A `nn.module` `GaussianModel` only for storing parameters and forward pass (rendering)
     - Reference training logic and hyperparameters is defined in `train()` in `gs.trainers.basic`
 - 📸 [Viser](https://github.com/nerfstudio-project/viser) web-based frontend for viewing model during and after training
-
-# System requriements
-Just like the original codebase, minGS requires a CUDA compatible GPU to run.
-
-Assuming you have CUDA toolkit installed, you can view or directly run `install.sh` to install the required dependencies and compile the CUDA kernels.
 
 # Examples
 
@@ -58,3 +54,17 @@ The codebase is structured as follows:
         - `Viewer.py`: Class for starting a web-based 3DGS viewer for a `GaussianModel`
         - `TrainingViewer.py` Extension of `Viewer` to be integrated into a training loop for live viewing during training 
     - `helpers/`: General functions for rendering and training 3DGS models
+ 
+# Installing dependencies
+Only tested for Linux, but may work for Windows too. Using devcontainers should make getting the dependencies easier.
+## Method 1: Local environment (Tested on Python 3.8)
+- [CUDA Toolkit](https://developer.nvidia.com/cuda-downloads)
+- `pip install numpy scipy torch torchvision torchaudio plyfile lpips pybind11 viser`
+- Installing PyBind11 submodules
+    - `pip install -e ./submodules/diff-gaussian-rasterization/`
+    - `pip install -e ./submodules/simple-knn/`
+## Method 2: .devcontainer
+Devcontainers automatically recreate the development environment using Docker. It is mainly supported by VSCode but there is [also limited support for other editors](https://containers.dev/supporting).
+Install the relevant extensions, and when you open the repository you should be prompted to enter the container environment. First time running might take around 5 minutes to build the environment.
+- VSCode
+- [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
